@@ -1,0 +1,107 @@
+---
+version: "3"
+services:
+  zookeeper:
+    image: "docker.io/bitnami/zookeeper:3.7"
+    environment:
+      - "ALLOW_ANONYMOUS_LOGIN=yes"
+  kafka:
+    image: "docker.io/bitnami/kafka:2"
+    environment:
+      - "KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181"
+      - "ALLOW_PLAINTEXT_LISTENER=yes"
+    depends_on:
+      - "zookeeper"
+  connect1:
+    image: "docker.io/confluentinc/cp-kafka-connect:latest"
+    environment:
+      - "CONNECT_BOOTSTRAP_SERVERS=kafka:9092"
+      - "CONNECT_REST_PORT=8083"
+      - "CONNECT_GROUP_ID=connect"
+      - "CONNECT_CONFIG_STORAGE_TOPIC=connect-config"
+      - "CONNECT_OFFSET_STORAGE_TOPIC=connect-offsets"
+      - "CONNECT_STATUS_STORAGE_TOPIC=connect-status"
+      - "CONNECT_KEY_CONVERTER=org.apache.kafka.connect.json.JsonConverter"
+      - "CONNECT_VALUE_CONVERTER=org.apache.kafka.connect.json.JsonConverter"
+      - "CONNECT_INTERNAL_KEY_CONVERTER=org.apache.kafka.connect.json.JsonConverter"
+      - "CONNECT_INTERNAL_VALUE_CONVERTER=org.apache.kafka.connect.json.JsonConverter"
+      - "CONNECT_PLUGIN_PATH=/usr/share/java"
+      - "CONNECT_REST_ADVERTISED_HOST_NAME=connect1"
+      - "CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR=1"
+      - "CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR=1"
+      - "CONNECT_STATUS_STORAGE_REPLICATION_FACTOR=1"
+      - "CONNECT_PLUGIN_PATH=/usr/share/java,/usr/share/confluent-hub-components,/data/connect-jars"
+    ports:
+      - "8183:8083"
+    command:
+      - bash
+      - -c
+      - |
+        echo "Installing Connector"
+        confluent-hub install --no-prompt confluentinc/kafka-connect-jdbc:10.3.1
+        echo "Launching Kafka Connect worker"
+        /etc/confluent/docker/run
+    depends_on:
+      - "kafka"
+  connect2:
+    image: "docker.io/confluentinc/cp-kafka-connect:latest"
+    environment:
+      - "CONNECT_BOOTSTRAP_SERVERS=kafka:9092"
+      - "CONNECT_REST_PORT=8083"
+      - "CONNECT_GROUP_ID=connect"
+      - "CONNECT_CONFIG_STORAGE_TOPIC=connect-config"
+      - "CONNECT_OFFSET_STORAGE_TOPIC=connect-offsets"
+      - "CONNECT_STATUS_STORAGE_TOPIC=connect-status"
+      - "CONNECT_KEY_CONVERTER=org.apache.kafka.connect.json.JsonConverter"
+      - "CONNECT_VALUE_CONVERTER=org.apache.kafka.connect.json.JsonConverter"
+      - "CONNECT_INTERNAL_KEY_CONVERTER=org.apache.kafka.connect.json.JsonConverter"
+      - "CONNECT_INTERNAL_VALUE_CONVERTER=org.apache.kafka.connect.json.JsonConverter"
+      - "CONNECT_PLUGIN_PATH=/usr/share/java"
+      - "CONNECT_REST_ADVERTISED_HOST_NAME=connect2"
+      - "CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR=1"
+      - "CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR=1"
+      - "CONNECT_STATUS_STORAGE_REPLICATION_FACTOR=1"
+      - "CONNECT_PLUGIN_PATH=/usr/share/java,/usr/share/confluent-hub-components,/data/connect-jars"
+    ports:
+      - "8283:8083"
+    command:
+      - bash
+      - -c
+      - |
+        echo "Installing Connector"
+        confluent-hub install --no-prompt confluentinc/kafka-connect-jdbc:10.3.1
+        echo "Launching Kafka Connect worker"
+        /etc/confluent/docker/run
+    depends_on:
+      - "kafka"
+  connect3:
+    image: "docker.io/confluentinc/cp-kafka-connect:latest"
+    environment:
+      - "CONNECT_BOOTSTRAP_SERVERS=kafka:9092"
+      - "CONNECT_REST_PORT=8083"
+      - "CONNECT_GROUP_ID=connect"
+      - "CONNECT_CONFIG_STORAGE_TOPIC=connect-config"
+      - "CONNECT_OFFSET_STORAGE_TOPIC=connect-offsets"
+      - "CONNECT_STATUS_STORAGE_TOPIC=connect-status"
+      - "CONNECT_KEY_CONVERTER=org.apache.kafka.connect.json.JsonConverter"
+      - "CONNECT_VALUE_CONVERTER=org.apache.kafka.connect.json.JsonConverter"
+      - "CONNECT_INTERNAL_KEY_CONVERTER=org.apache.kafka.connect.json.JsonConverter"
+      - "CONNECT_INTERNAL_VALUE_CONVERTER=org.apache.kafka.connect.json.JsonConverter"
+      - "CONNECT_PLUGIN_PATH=/usr/share/java"
+      - "CONNECT_REST_ADVERTISED_HOST_NAME=connect3"
+      - "CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR=1"
+      - "CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR=1"
+      - "CONNECT_STATUS_STORAGE_REPLICATION_FACTOR=1"
+      - "CONNECT_PLUGIN_PATH=/usr/share/java,/usr/share/confluent-hub-components,/data/connect-jars"
+    ports:
+      - "8383:8083"
+    command:
+      - bash
+      - -c
+      - |
+        echo "Installing Connector"
+        confluent-hub install --no-prompt confluentinc/kafka-connect-jdbc:10.3.1
+        echo "Launching Kafka Connect worker"
+        /etc/confluent/docker/run
+    depends_on:
+      - "kafka"

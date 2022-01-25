@@ -70,10 +70,11 @@ func (c *Client) doWithFailover(method, url string, reqData interface{}, ret int
 				return err
 			}
 		}
+		return nil
 	}
 	result := fmt.Errorf("all hosts in cluster failed:\n")
 	for _, err := range errStack {
-		result = fmt.Errorf("    %w", err)
+		result = fmt.Errorf("    %w\n", err)
 	}
 	return result
 }
@@ -125,7 +126,7 @@ func (c *Client) do(method, host, url string, reqData interface{}, ret interface
 	if ret != nil {
 		err = json.Unmarshal(body, ret)
 		if err != nil {
-			return fmt.Errorf("failed to parse response body as error, HTTP status code was [%d]", resp.StatusCode)
+			return fmt.Errorf("failed to parse response body, the error was %w", err)
 		}
 	}
 

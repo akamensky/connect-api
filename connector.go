@@ -4,17 +4,14 @@ import (
 	"fmt"
 )
 
-type GetConnectorNameListResponse struct {
-	ConnectorNameList []string
-}
-
-//path: /connectors
-func (c *Client) GetConnectorNameList() (*GetConnectorNameListResponse, error) {
+// ConnectorNameList returns list of connector names
+// currently defined in KC cluster
+func (c *Client) ConnectorNameList() ([]string, error) {
 	url := "/connectors"
 
-	result := new(GetConnectorNameListResponse)
+	result := make([]string, 0)
 
-	err := c.get(url, result.ConnectorNameList)
+	err := c.get(url, &result)
 	if err != nil {
 		return nil, err
 	}
@@ -22,27 +19,25 @@ func (c *Client) GetConnectorNameList() (*GetConnectorNameListResponse, error) {
 	return result, nil
 }
 
-type CreateConnectorRequest struct {
-	ConnectorName   string            `json:"name"`
-	ConnectorConfig map[string]string `json:"config"`
+// CreateOrUpdateConnector will create connector if it does not exist and will update configuration of existing one
+func (c *Client) CreateOrUpdateConnector(name string, config map[string]string) error {
+	url := fmt.Sprintf("/connectors/%s/config", name)
+
+	err := c.put(url, config, nil)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
-type CreateConnectorResponse struct {
-	ConnectorName   string            `json:"name"`
-	ConnectorConfig map[string]string `json:"config"`
-	ConnectorTasks  []*struct {
-		TaskId        int64  `json:"task"`
-		ConnectorName string `json:"connector"`
-	} `json:"tasks"`
-}
+// ConnectorConfig returns configuration map[string]string of connector
+func (c *Client) ConnectorConfig(name string) (map[string]string, error) {
+	url := fmt.Sprintf("/connectors/%s/config", name)
 
-//path: /connectors
-func (c *Client) CreateConnector(req *CreateConnectorRequest) (*CreateConnectorResponse, error) {
-	url := "/connectors"
+	result := make(map[string]string)
 
-	result := new(CreateConnectorResponse)
-
-	err := c.post(url, req, result)
+	err := c.get(url, &result)
 	if err != nil {
 		return nil, err
 	}
@@ -50,88 +45,7 @@ func (c *Client) CreateConnector(req *CreateConnectorRequest) (*CreateConnectorR
 	return result, nil
 }
 
-type GetConnectorRequest struct {
-	ConnectorName string `json:"name"`
-}
-
-type GetConnectorResponse struct {
-	ConnectorName   string            `json:"name"`
-	ConnectorConfig map[string]string `json:"config"`
-	ConnectorTasks  []*struct {
-		TaskId        int64  `json:"task"`
-		ConnectorName string `json:"connector"`
-	} `json:"tasks"`
-}
-
-//path: /connectors/:name
-func (c *Client) GetConnector(req GetConnectorRequest) (*GetConnectorResponse, error) {
-	url := fmt.Sprintf("/connectors/%s", req.ConnectorName)
-
-	result := new(GetConnectorResponse)
-
-	err := c.get(url, result)
-	if err != nil {
-		return nil, err
-	}
-
-	return result, nil
-}
-
-type GetConnectorConfigRequest struct {
-	ConnectorName string `json:"name"`
-}
-
-type GetConnectorConfigResponse struct {
-	ConnectorConfig map[string]string
-}
-
-//path: /connectors/:name/config
-func (c *Client) GetConnectorConfig(req *GetConnectorConfigRequest) (*GetConnectorConfigResponse, error) {
-	url := fmt.Sprintf("/connectors/%s/config", req.ConnectorName)
-
-	result := new(GetConnectorConfigResponse)
-
-	err := c.get(url, result.ConnectorConfig)
-	if err != nil {
-		return nil, err
-	}
-
-	return result, nil
-}
-
-type UpdateConnectorConfigRequest struct {
-	ConnectorName   string            `json:"name"`
-	ConnectorConfig map[string]string `json:"config"`
-}
-
-type UpdateConnectorConfigResponse struct {
-	ConnectorName   string            `json:"name"`
-	ConnectorConfig map[string]string `json:"config"`
-	ConnectorTasks  []*struct {
-		TaskId        int64  `json:"task"`
-		ConnectorName string `json:"connector"`
-	} `json:"tasks"`
-}
-
-//path: /connectors/:name/config
-func (c *Client) UpdateConnectorConfig(req *UpdateConnectorConfigRequest) (*UpdateConnectorConfigResponse, error) {
-	url := fmt.Sprintf("/connectors/%s/config", req.ConnectorName)
-
-	result := new(UpdateConnectorConfigResponse)
-
-	err := c.put(url, req.ConnectorConfig, result)
-	if err != nil {
-		return nil, err
-	}
-
-	return result, nil
-}
-
-type GetConnectorStatusRequest struct {
-	ConnectorName string
-}
-
-type GetConnectorStatusResponse struct {
+type ConnectorStatusResponse struct {
 	ConnectorName   string `json:"name"`
 	ConnectorStatus *struct {
 		State    string
@@ -145,11 +59,11 @@ type GetConnectorStatusResponse struct {
 	} `json:"tasks"`
 }
 
-//path: /connectors/:name/status
-func (c *Client) GetConnectorStatus(req *GetConnectorStatusRequest) (*GetConnectorStatusResponse, error) {
-	url := fmt.Sprintf("/connectors/%s/status", req.ConnectorName)
+// ConnectorStatus returns state of the connector and its tasks
+func (c *Client) ConnectorStatus(name string) (*ConnectorStatusResponse, error) {
+	url := fmt.Sprintf("/connectors/%s/status", name)
 
-	result := new(GetConnectorStatusResponse)
+	result := new(ConnectorStatusResponse)
 
 	err := c.get(url, result)
 	if err != nil {
@@ -159,61 +73,9 @@ func (c *Client) GetConnectorStatus(req *GetConnectorStatusRequest) (*GetConnect
 	return result, nil
 }
 
-type RestartConnectorRequest struct {
-	ConnectorName string
-}
-
-//path: /connectors/:name/restart
-func (c *Client) RestartConnector(req *RestartConnectorRequest) error {
-	url := fmt.Sprintf("/connectors/%s/restart", req.ConnectorName)
-
-	err := c.post(url, nil, nil)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-type PauseConnectorRequest struct {
-	ConnectorName string
-}
-
-//path: /connectors/:name/pause
-func (c *Client) PauseConnector(req *PauseConnectorRequest) error {
-	url := fmt.Sprintf("/connectors/%s/pause", req.ConnectorName)
-
-	err := c.put(url, nil, nil)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-type ResumeConnectorRequest struct {
-	ConnectorName string
-}
-
-//path: /connectors/:name/resume
-func (c *Client) ResumeConnector(req *ResumeConnectorRequest) error {
-	url := fmt.Sprintf("/connectors/%s/resume", req.ConnectorName)
-
-	err := c.put(url, nil, nil)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-type DeleteConnectorRequest struct {
-	ConnectorName string
-}
-
-//path: /connectors/:name/delete
-func (c *Client) DeleteConnector(req *DeleteConnectorRequest) error {
-	url := fmt.Sprintf("/connectors/%s/delete", req.ConnectorName)
+// DeleteConnector will delete connector from KafkaConnect cluster
+func (c *Client) DeleteConnector(name string) error {
+	url := fmt.Sprintf("/connectors/%s", name)
 
 	err := c.delete(url, nil, nil)
 	if err != nil {
